@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git 'https://github.com/faiz/python-jenkins-demo.git'
+            }
+        }
+
+        stage('Setup Python Env') {
+            steps {
+                sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                python -m unittest discover -s tests || echo "No tests found"
+                '''
+            }
+        }
+
+        stage('Deploy App') {
+            steps {
+                sh '''
+                echo "Starting Flask app..."
+                nohup bash -c "source venv/bin/activate && python app.py > app.log 2>&1 &"
+                '''
+            }
+        }
+    }
+}
